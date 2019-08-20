@@ -1,0 +1,81 @@
+version: '3.4'
+
+services:
+
+  alp_db:
+    container_name: alp_db
+    image: postgres:alpine
+    restart: always
+    networks:
+      - frontend
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  alp_backend:
+    container_name: alp_backend
+    build: ./backend
+    restart: always
+    volumes:
+      - ./backend:/opt/alp/backend
+      - static_volume:/opt/alp/backend/static  # <-- bind the static volume
+      - media_volume:/opt/alp/backend/media  # <-- bind the media volume
+    networks:
+      - frontend
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  alp_frontend:
+    container_name: alp_frontend
+    build: ./frontend
+    restart: always
+    volumes:
+      - ./frontend:/opt/alp/frontend
+      - node_modules:/opt/alp/frontend/node_modules
+      - frontend_dist:/opt/alp/frontend/dist
+    networks:
+      - frontend
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=development
+    depends_on:
+      - alp_backend
+
+  alp_nginx:
+    container_name: alp_nginx
+    image: nginx:latest
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - frontend_dist:/opt/alp/dist
+      - static_volume:/opt/alp/backend/static  # <-- bind the static volume
+      - media_volume:/opt/alp/backend/media  # <-- bind the media volume
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - alp_backend
+      - alp_frontend
+
+networks:
+  frontend:
+    internal: false
+  backend:
+    internal: true
+
+volumes:
+  node_modules:
+  frontend_dist:
+  db_volume:
+  static_volume:  # <-- declare the static volume
+  media_volume:  # <-- declare the media volume

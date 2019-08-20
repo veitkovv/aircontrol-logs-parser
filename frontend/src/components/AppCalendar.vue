@@ -41,7 +41,7 @@
                     </v-menu>
                 </v-toolbar>
             </v-sheet>
-            <v-sheet height="600">
+            <v-sheet height="700">
                 <v-calendar
                         ref="calendar"
                         v-model="focus"
@@ -55,11 +55,41 @@
                         :weekdays="weekdays"
                         :short-weekdays="shortWeekdays"
                         :short-months="shortMonths"
+                        interval-height="40"
+                        interval-minutes="5"
+                        interval-count="720"
                         @click:event="showEvent"
                         @click:more="viewDay"
                         @click:date="viewDay"
                         @change="updateRange"
                 >
+                    <!-- the events at the top (all-day) -->
+                    <template v-slot:day-header="{ date }">
+                        <template v-for="event in getEventsMap[date]">
+                            <!-- all day events don't have time -->
+                            <div
+                                    v-if="!event.time"
+                                    :key="event.title"
+                                    class="my-event"
+                                    @click="open(event)"
+                                    v-html="event.title"
+                            ></div>
+                        </template>
+                    </template>
+                    <!-- the events at the bottom (timed) -->
+                    <template v-slot:day-body="{ date, timeToY, minutesToPixels }">
+                        <template v-for="event in getEventsMap[date]">
+                            <!-- timed events -->
+                            <div
+                                    v-if="event.time"
+                                    :key="event.title"
+                                    :style="{ top: timeToY(event.time) + 'px', height: minutesToPixels(event.duration) + 'px' }"
+                                    class="my-event with-time"
+                                    @click="open(event)"
+                                    v-html="event.title"
+                            ></div>
+                        </template>
+                    </template>
                 </v-calendar>
                 <v-menu
                         v-model="selectedOpen"
@@ -226,8 +256,33 @@
                 'fetchEvents',
             ])
         },
-        mounted() {
+        beforeMount() {
             this.fetchEvents()
         }
     };
 </script>
+
+<style scoped>
+    .my-event {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        border-radius: 2px;
+        background-color: #1867c0;
+        color: #ffffff;
+        border: 1px solid #1867c0;
+        font-size: 12px;
+        padding: 3px;
+        cursor: pointer;
+        margin-bottom: 1px;
+        left: 4px;
+        margin-right: 8px;
+        position: relative;
+    }
+
+    .my-event.with-time {
+        position: absolute;
+        right: 4px;
+        margin-right: 0px;
+    }
+</style>

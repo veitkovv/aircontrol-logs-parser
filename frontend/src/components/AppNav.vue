@@ -1,20 +1,39 @@
 <template>
-    <v-navigation-drawer
-            v-model="drawer"
-            app
-    >
-        <v-list dense>
-            <v-list-item v-for="route in routes" @click="$router.push(route.path)">
-                <v-list-item-action>
-                    <v-icon>{{route.icon}}</v-icon>
-                </v-list-item-action>
+
+    <v-navigation-drawer app v-model="drawer">
+        <v-list-item>
+            <v-list-item-content>
+                <v-list-item-title class="title">
+                    Application
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                    subtext
+                </v-list-item-subtitle>
+            </v-list-item-content>
+        </v-list-item>
+
+        <v-divider></v-divider>
+
+        <v-list
+                dense
+                nav
+        >
+            <v-list-item
+                    v-for="route in routes" :to="route.path"
+                    link
+            >
+                <v-list-item-icon>
+                    <v-icon>{{ route.icon }}</v-icon>
+                </v-list-item-icon>
+
                 <v-list-item-content>
-                    <v-list-item-title>{{route.name}}</v-list-item-title>
+                    <v-list-item-title>{{ route.name }}</v-list-item-title>
                 </v-list-item-content>
             </v-list-item>
-
         </v-list>
     </v-navigation-drawer>
+
+
 </template>
 
 <script>

@@ -59,7 +59,8 @@
                         @click:more="viewDay"
                         @click:date="viewDay"
                         @change="updateRange"
-                ></v-calendar>
+                >
+                </v-calendar>
                 <v-menu
                         v-model="selectedOpen"
                         :close-on-content-click="false"
@@ -139,9 +140,9 @@
                 let moment = require('moment');
                 return this.EVENTS.map(event => ({
                     "name": event.name,
-                    "start": moment(event.start).format("YYYY-MM-DD"),
-                    "end": moment(event.end).format("YYYY-MM-DD"),
-                    "color": "black"
+                    "start": moment(event.start).format("YYYY-MM-DD HH:mm:ss"),
+                    "end": moment(event.end).format("YYYY-MM-DD HH:mm:ss"),
+                    "color": "green"
                 }))
             },
             title() {

@@ -1,5 +1,4 @@
 from django.db import models
-from django.conf import settings
 
 
 class Roll(models.Model):
@@ -18,3 +17,7 @@ class Roll(models.Model):
         if self.description:
             return f'{self.name} "{self.description}": {self.uuid}'
         return f'{self.name}: {self.uuid}'
+
+    @property
+    def duration(self):
+        return self.end - self.start

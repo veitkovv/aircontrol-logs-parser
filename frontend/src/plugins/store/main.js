@@ -18,8 +18,8 @@ const mutations = {
     }
 };
 const actions = {
-    async fetchEvents({commit}) {
-        await fetch(`http://api.localhost/rolls/`)
+    async fetchEvents({commit}, search = '') {
+        await fetch(`http://api.localhost/rolls/?name__icontains=` + search)
             .then(response => response.json())
             .then(data => commit('SET_EVENTS', data.results))
     }

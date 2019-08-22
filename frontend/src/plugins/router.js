@@ -13,6 +13,12 @@ export default new Router({
             component: () => import('../components/AppCalendar')
         },
         {
+            path: '/report',
+            name: 'Эфирная справка',
+            icon: 'edit',
+            component: () => import('../components/AppReportForm')
+        },
+        {
             path: '/about',
             name: 'О приложении',
             icon: 'announcement',

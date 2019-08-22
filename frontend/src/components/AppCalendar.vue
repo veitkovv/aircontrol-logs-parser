@@ -1,10 +1,12 @@
 <template>
     <v-layout fill-height>
+        {{focus}}
+        {{type}}
         <v-flex>
             <v-sheet height="64">
                 <v-toolbar flat color="white">
                     <v-btn outlined class="mr-4" @click="setToday">
-                        Today
+                        Сегодня
                     </v-btn>
                     <v-btn fab text small @click="prev">
                         <v-icon small>arrow_back_ios</v-icon>
@@ -26,16 +28,16 @@
                         </template>
                         <v-list>
                             <v-list-item @click="type = 'day'">
-                                <v-list-item-title>Day</v-list-item-title>
+                                <v-list-item-title>День</v-list-item-title>
                             </v-list-item>
                             <v-list-item @click="type = 'week'">
-                                <v-list-item-title>Week</v-list-item-title>
+                                <v-list-item-title>Неделя</v-list-item-title>
                             </v-list-item>
                             <v-list-item @click="type = 'month'">
-                                <v-list-item-title>Month</v-list-item-title>
+                                <v-list-item-title>Месяц</v-list-item-title>
                             </v-list-item>
                             <v-list-item @click="type = '4day'">
-                                <v-list-item-title>4 days</v-list-item-title>
+                                <v-list-item-title>4 дня</v-list-item-title>
                             </v-list-item>
                         </v-list>
                     </v-menu>
@@ -57,7 +59,7 @@
                         :short-months="shortMonths"
                         interval-height="40"
                         interval-minutes="5"
-                        interval-count="720"
+                        interval-count="289"
                         @click:event="showEvent"
                         @click:more="viewDay"
                         @click:date="viewDay"
@@ -120,7 +122,9 @@
                             </v-btn>
                         </v-toolbar>
                         <v-card-text>
-                            <span v-html="selectedEvent.details"></span>
+                            <p v-html="selectedEvent.description"></p>
+                            <p>UUID: <span v-html="selectedEvent.uuid"></span></p>
+                            <p><span v-html="selectedEvent.start"></span> - <span v-html="selectedEvent.end"></span></p>
                         </v-card-text>
                         <v-card-actions>
                             <v-btn
@@ -149,10 +153,10 @@
             weekdays: [1, 2, 3, 4, 5, 6, 0],
             locale: 'ru-ru',
             typeToLabel: {
-                month: 'Month',
-                week: 'Week',
-                day: 'Day',
-                '4day': '4 Days',
+                month: 'Месяц',
+                week: 'Неделя',
+                day: 'День',
+                '4day': '4 дня',
             },
             start: null,
             end: null,
@@ -172,7 +176,10 @@
                     "name": event.name,
                     "start": moment(event.start).format("YYYY-MM-DD HH:mm:ss"),
                     "end": moment(event.end).format("YYYY-MM-DD HH:mm:ss"),
-                    "color": "green"
+                    "color": this.getCalendarEventColor(event.category),
+                    "uuid": event.uuid,
+                    "url": event.url,
+                    "description": event.description
                 }))
             },
             title() {
@@ -197,7 +204,7 @@
                         return `${startMonth} ${startYear}`
                     case 'week':
                     case '4day':
-                        return `${startMonth} ${startDay} ${startYear} - ${suffixMonth} ${endDay} ${suffixYear}`
+                        return `${startMonth} ${startDay} - ${suffixMonth} ${endDay} ${suffixYear} ${startYear}`
                     case 'day':
                         return `${startMonth} ${startDay} ${startYear}`
                 }
@@ -216,6 +223,13 @@
             },
             getEventColor(event) {
                 return event.color
+            },
+            getCalendarEventColor(eventCategory) {
+                if (eventCategory === "VIDEO")
+                    return "green";
+                else if (eventCategory === "ENGINE") {
+                    return "red"
+                } else return "pink"
             },
             setToday() {
                 this.focus = this.today
@@ -248,9 +262,10 @@
                 this.end = end
             },
             nth(d) {
-                return d > 3 && d < 21
-                    ? 'th'
-                    : ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'][d % 10]
+                return ''
+                // return d > 3 && d < 21
+                //     ? 'th'
+                //     : ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'][d % 10]
             },
             ...mapActions([
                 'fetchEvents',

@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 
 class RollSerializer(serializers.HyperlinkedModelSerializer):
     duration = serializers.ReadOnlyField()
+    id = serializers.ReadOnlyField()
 
     class Meta:
         model = Roll

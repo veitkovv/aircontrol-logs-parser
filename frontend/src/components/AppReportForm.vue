@@ -190,14 +190,25 @@
                                 @click:clear="clearSignedBy"
                         ></v-text-field>
                     </v-col>
+                    <v-col>
+                        <v-text-field
+                                v-model="createdBy"
+                                label="Исполнитель"
+                                outlined
+                                clear-icon="mdi-close-circle"
+                                clearable
+                                @click:clear="clearCreatedBy"
+                        ></v-text-field>
+                    </v-col>
+
                 </v-row>
-                <v-row justify="center">
-                    <v-col cols="12" lg="12">
-                        <span>Всего роликов найдено: {{eventsList.length}}.</span>
-                        <p>Общий хронометраж: {{totalDuration}} секунд. </p>
+                <v-row justify="center" v-if="eventsList.length !==0" ref="content" id="content">
+                    <v-col cols="12" lg="12" id="document-to-export">
+                        <p class="header">{{reportFor}}</p>
+                        <span>Эфирная справка о материалах, прошедших в эфире телеканала</span>
+                        <span> ОГТРК «Ямал-Регион»</span>
+                        <p>(период размещения: c {{dateStart}} {{timeStart}} по {{dateEnd}} {{timeEnd}})</p>
                         <v-simple-table
-                                v-if="eventsList.length !==0"
-                                height="400"
                                 dense
                                 fixed-header
                         >
@@ -209,30 +220,31 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr v-for="item in eventsList">
+                            <tr v-for="(item, index) in eventsList" v-bind:key="item.id">
                                 <td>{{dateTimeHumanFormat(item.start)}}</td>
-                                <td>
-                                    <v-text-field
-                                            :value="item.name"
-                                    ></v-text-field>
-                                </td>
+                                <td>{{item.name}}</td>
                                 <td>{{item.duration}}</td>
                             </tr>
                             </tbody>
                         </v-simple-table>
-                    </v-col>
-
-                </v-row>
-                <v-row justify="center">
-                    <div id="document-to-export">
-                        <p class="header">{{reportFor}}</p>
-                        <span>Эфирная справка о материалах, прошедших в эфире телеканала</span>
-                        <span> ОГТРК «Ямал-Регион»</span>
-                        <p>(период размещения: c {{dateStart}} {{timeStart}} по {{dateEnd}} {{timeEnd}})</p>
-
                         <hr>
-                        <p class="footer">{{signedBy}} ____________</p>
-                    </div>
+                        <div class="summary">
+                            <span>Всего роликов: {{eventsList.length}}.</span>
+                            <p>Общий хронометраж: {{totalDuration}} секунд. </p>
+                        </div>
+                        <p class="footer">{{signedBy}} ______________________</p>
+                        <p class="contact">{{createdBy}}</p>
+                    </v-col>
+                    <v-col>
+                        <v-btn
+                                outlined
+                                large
+                                block
+                                color="success"
+                                @click="makePdf"
+                        >Скачать документ
+                        </v-btn>
+                    </v-col>
                 </v-row>
             </v-col>
         </v-row>
@@ -269,9 +281,10 @@
                     v => new Date(v) < new Date() || "Эфиры за эту дату еще не наступили"
                 ],
                 timeEndMenu: false,
-                timeEnd: '00:00',
+                timeEnd: '23:59',
                 reportFor: 'ИП Осколков И.Н.',
                 signedBy: 'Начальник программной дирекции О.А. Криберг',
+                createdBy: 'Исп. Пузина Диана Эдуардовна 7-12-46',
                 eventsList: [],
                 eventsDateFiltered: []
             }
@@ -324,7 +337,6 @@
                         .then(data => {
                             this.eventsList = data.results
                         })
-                    console.log(this.eventsList)
                 }
                 this.loading = false
             },
@@ -346,6 +358,9 @@
             clearSignedBy() {
                 this.signedBy = ''
             },
+            clearCreatedBy() {
+                this.createdBy = ''
+            },
             itemChanged(item) {
                 if (item !== null) {
                     this.fetchEvents(item)
@@ -358,6 +373,106 @@
             dateTimeHumanFormat(datetime) {
                 let moment = require('moment');
                 return moment(datetime).format("YYYY-MM-DD HH:mm:ss")
+            },
+            makePdf() {
+                let vm = this
+                let pdfMake = require('pdfmake/build/pdfmake.js')
+                if (pdfMake.vfs === undefined) {
+                    var pdfFonts = require('pdfmake/build/vfs_fonts.js')
+                    pdfMake.vfs = pdfFonts.pdfMake.vfs;
+                }
+
+                let rows = this.eventsList.map(event => ([
+                        this.dateTimeHumanFormat(event.start),
+                        event.name,
+                        event.duration]
+                ));
+                rows.unshift(['Время выхода', 'Название ролика', 'Хронометраж (сек.)'])
+
+                let docDefinition = {
+                    header: function (currentPage, pageCount, pageSize) {
+                        if (currentPage === 1) {
+                            return [
+                                {
+                                    text: vm.reportFor,
+                                    style: 'contact',
+                                    alignment: 'right'
+                                }
+                            ]
+                        }
+                    },
+                    content: [
+                        {
+                            text: 'Эфирная справка о материалах, прошедших в эфире телеканала',
+                            style: 'subheader',
+                            alignment: 'center'
+                        },
+                        {
+                            text: 'ОГТРК «Ямал-Регион»',
+                            style: 'subheader',
+                            alignment: 'center'
+                        },
+                        {
+                            text: 'период размещения: c ' + this.dateStart + ' ' + this.timeStart + ' по ' + this.dateEnd + ' ' + this.timeEnd,
+                            style: 'subheader',
+                            alignment: 'center'
+                        },
+                        {
+                            style: 'tableExample',
+                            table: {
+                                widths: ['auto', 'auto', 100],
+                                body: rows
+                            }
+                        },
+                        {
+                            text: 'Всего роликов: ' + this.eventsList.length + '.',
+                        },
+                        {
+                            text: 'Общий хронометраж: ' + this.totalDuration + ' секунд.'
+                        },
+                        {
+                            text: this.signedBy + ' ______________________',
+                            alignment: 'right',
+                            style: 'sign'
+                        },
+
+                    ],
+                    footer: function (currentPage, pageCount) {
+                        if (currentPage === pageCount)
+                            return [
+                                {
+                                    text: vm.createdBy,
+                                    style: 'contact'
+                                }
+                            ]
+                    },
+                    styles: {
+                        contact: {
+                            fontSize: 8,
+                            margin: [7, 0, 0, 20]
+                        },
+                        header: {
+                            fontSize: 18,
+                            bold: true,
+                        },
+                        subheader: {
+                            fontSize: 16,
+                            bold: true,
+                        },
+                        tableExample: {
+                            margin: [0, 5, 0, 15]
+                        },
+                        tableHeader: {
+                            bold: true,
+                            fontSize: 13,
+                            color: 'black'
+                        },
+                        sign: {
+                            margin: [50, 5, 0, 15]
+                        }
+                    },
+                }
+                pdfMake.createPdf(docDefinition).download('optionalName.pdf')
             }
         },
         watch: {
@@ -392,15 +507,9 @@
 <style scoped>
     #document-to-export {
         border: solid black 1px;
-        width: 595px;
         display: flex;
         flex-direction: column;
-        font-family: Arial;
-        font-size: 12px;
         align-items: center;
-    }
-
-    #document-to-export p {
     }
 
     #document-to-export > p.header {
@@ -409,9 +518,21 @@
         align-self: flex-end;
     }
 
+    #document-to-export > div.summary {
+        align-self: flex-start;
+        padding-left: 20px;
+    }
+
     #document-to-export > p.footer {
         padding-top: 7px;
         padding-right: 20px;
         align-self: flex-end;
+    }
+
+    #document-to-export > p.contact {
+        padding-top: 7px;
+        padding-left: 20px;
+        align-self: flex-start;
+        font-size: 12px;
     }
 </style>

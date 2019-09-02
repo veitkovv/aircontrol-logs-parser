@@ -20,4 +20,6 @@ class Roll(models.Model):
 
     @property
     def duration(self):
-        return self.end - self.start
+        if self.end:
+            return self.end - self.start
+        return 0

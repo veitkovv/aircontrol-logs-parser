@@ -6,10 +6,6 @@ from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 
 from datetime import datetime, timedelta
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.utils import IntegrityError
-from django.db.models import Q
-
 from .models import Roll
 
 

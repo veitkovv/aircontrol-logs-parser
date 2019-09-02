@@ -132,15 +132,15 @@
                 <v-row>
                     <v-autocomplete
                             v-model="chips"
-                            :disabled="isUpdating"
-                            :items="eventsDateFiltered"
+                            :disabled="loading"
+                            :items="EVENTS"
                             chips
                             color="blue-grey lighten-2"
                             label="Выберите ролик(и)"
                             item-text="name"
                             item-value="name"
                             multiple
-                            @update:search-input="itemChanged"
+                            @update:search-input="eventListAutocomplete"
                     >
                         <template v-slot:selection="data">
                             <v-chip
@@ -262,7 +262,6 @@
         data() {
             return {
                 loading: false,
-                isUpdating: false,
                 itemSearch: null,
                 chips: [],
                 dateStartMenu: false,
@@ -285,8 +284,6 @@
                 reportFor: 'ИП Осколков И.Н.',
                 signedBy: 'Начальник программной дирекции О.А. Криберг',
                 createdBy: 'Исп. Пузина Диана Эдуардовна 7-12-46',
-                eventsList: [],
-                eventsDateFiltered: []
             }
         },
 
@@ -304,6 +301,9 @@
                 return Math.round(this.eventsList.reduce(function (prev, cur) {
                     return prev + parseFloat(cur.duration);
                 }, 0))
+            },
+            eventsList() {
+                return this.EVENTS.filter(x => this.chips.includes(x.name))
             }
         },
 
@@ -311,35 +311,18 @@
             ...mapActions([
                 'fetchEvents',
             ]),
-            async fetchReportData() {
-                // https://fetch.spec.whatwg.org/#fetch-api
-                let url = new URL("http://api.localhost/rolls/?start_after=" + this.startAfter + "&start_before=" + this.startBefore)
 
+            fetchReportData() {
                 this.loading = true
-                // для реактивной строки поиска - фильтр только по датам
-                await fetch(url.href)
-                    .then(response => response.json())
-                    .then(data => {
-                        this.eventsDateFiltered = data.results
-                    })
-
-                if (this.itemSearch !== null) {
-                    url.searchParams.append('name__icontains', this.itemSearch)
-                    await fetch(url.href)
-                        .then(response => response.json())
-                        .then(data => {
-                            this.eventsList = data.results
-                        })
-                } else {
-                    url.searchParams.append('name_in', this.chips.join('|'))
-                    await fetch(url.href)
-                        .then(response => response.json())
-                        .then(data => {
-                            this.eventsList = data.results
-                        })
-                }
+                this.fetchEvents(
+                    {
+                        startBefore: this.startBefore,
+                        startAfter: this.startAfter
+                    }
+                )
                 this.loading = false
             },
+
             formatDate(date) {
                 if (!date) return null
 
@@ -361,13 +344,13 @@
             clearCreatedBy() {
                 this.createdBy = ''
             },
-            itemChanged(item) {
+            eventListAutocomplete(item) {
                 if (item !== null) {
-                    this.fetchEvents(item)
-                }
+                    return this.EVENTS.filter(i => i.name.includes(item));
+                } else return this.EVENTS
             },
             remove(item) {
-                this.chips.splice(this.chips.indexOf(item), 1)
+                this.chips.splice(this.chips.indexOf(item.name), 1)
                 this.chips = [...this.chips]
             },
             dateTimeHumanFormat(datetime) {
@@ -481,9 +464,6 @@
             },
             dateEnd(val) {
                 this.dateEndFormatted = this.formatDate(this.dateEnd)
-            },
-            chips() {
-                this.fetchReportData()
             },
             dateStartFormatted() {
                 this.fetchReportData()

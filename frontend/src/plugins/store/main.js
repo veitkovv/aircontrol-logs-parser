@@ -18,8 +18,13 @@ const mutations = {
     }
 };
 const actions = {
-    async fetchEvents({commit}, search = '') {
-        await fetch(`http://api.localhost/rolls/?name__icontains=` + search)
+    async fetchEvents({commit}, {startAfter, startBefore}) {
+        // Пользователь выбрал диапазон дат, получаем список всех роликов, сохраняем в EVENTS
+        // https://fetch.spec.whatwg.org/#fetch-api
+        let url = new URL("http://api.localhost/rolls/?start_after=" + startAfter + "&start_before=" + startBefore)
+
+        // для реактивной строки поиска - фильтр только по датам
+        await fetch(url.href)
             .then(response => response.json())
             .then(data => commit('SET_EVENTS', data.results))
     }

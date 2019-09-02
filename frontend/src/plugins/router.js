@@ -14,9 +14,15 @@ export default new Router({
         },
         {
             path: '/report',
-            name: 'Эфирная справка',
+            name: 'Эфирная справка ТВ',
             icon: 'edit',
             component: () => import('../components/AppReportForm')
+        },
+                {
+            path: '/report-radio',
+            name: 'Эфирная справка Радио',
+            icon: 'edit',
+            component: () => import('../components/AppRadioReportForm')
         },
         {
             path: '/about',

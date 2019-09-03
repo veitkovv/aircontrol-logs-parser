@@ -238,18 +238,9 @@
                         <v-btn
                                 large
                                 block
-                                color="primary"
-                                @click="makePdf"
-                        >Скачать PDF
-                        </v-btn>
-                    </v-col>
-                    <v-col>
-                        <v-btn
-                                large
-                                block
                                 color="success"
-                                @click="makeCsv"
-                        >Скачать EXCEL
+                                @click="makeDocx"
+                        >Скачать документ
                         </v-btn>
                     </v-col>
                 </v-row>
@@ -263,6 +254,8 @@
 
 <script>
     import {mapActions, mapGetters} from 'vuex'
+    import {Document, Packer, Paragraph, TextRun, Header, Footer, Table, AlignmentType, HeadingLevel} from "docx";
+    import {saveAs} from 'file-saver';
 
     export default {
         name: "AppReportForm",
@@ -364,108 +357,95 @@
                 let moment = require('moment');
                 return moment(datetime).format("YYYY-MM-DD HH:mm:ss")
             },
-            makePdf() {
-                let vm = this
-                let pdfMake = require('pdfmake/build/pdfmake.js')
-                if (pdfMake.vfs === undefined) {
-                    var pdfFonts = require('pdfmake/build/vfs_fonts.js')
-                    pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+            makeDocx() {
+                // Create document
+                let doc = new Document();
+                let vm = this;
+
+                const table = new Table({
+                    rows: this.eventsList.length + 1,
+                    columns: 3,
+                });
+
+                table.getCell(0, 0).add(new Paragraph({
+                    text: "Время выхода в эфир",
+                    heading: HeadingLevel.SUBTITLE,
+                    alignment: AlignmentType.CENTER
+                }));
+                table.getCell(0, 1).add(new Paragraph({
+                    text: "Имя ролика",
+                    heading: HeadingLevel.SUBTITLE,
+                    alignment: AlignmentType.CENTER
+                }));
+                table.getCell(0, 2).add(new Paragraph({
+                    text: "Хронометраж",
+                    heading: HeadingLevel.SUBTITLE,
+                    alignment: AlignmentType.CENTER
+                }));
+
+                for (let [index, item] of this.eventsList.entries()) {
+                    table.getCell(index + 1, 0).add(new Paragraph(this.dateTimeHumanFormat(item.start)));
+                    table.getCell(index + 1, 1).add(new Paragraph(item.name));
+                    table.getCell(index + 1, 2).add(new Paragraph(item.duration));
                 }
 
-                let rows = this.eventsList.map(event => ([
-                        this.dateTimeHumanFormat(event.start),
-                        event.name,
-                        event.duration]
-                ));
-                rows.unshift(['Время выхода', 'Название ролика', 'Хронометраж (сек.)'])
 
-                let docDefinition = {
-                    header: function (currentPage, pageCount, pageSize) {
-                        if (currentPage === 1) {
-                            return [
-                                {
-                                    text: vm.reportFor,
-                                    style: 'contact',
-                                    alignment: 'right'
-                                }
-                            ]
-                        }
+                // Documents contain sections, you can have multiple sections per document, go here to learn more about sections
+                // This simple example will only contain one section
+                doc.addSection({
+                    properties: {},
+                    footers: {
+                        default: new Footer({
+                            children: [new Paragraph(vm.createdBy)],
+                        }),
                     },
-                    content: [
-                        {
-                            text: 'Эфирная справка о материалах, прошедших в эфире телеканала',
-                            style: 'subheader',
-                            alignment: 'center'
-                        },
-                        {
-                            text: 'ОГТРК «Ямал-Регион»',
-                            style: 'subheader',
-                            alignment: 'center'
-                        },
-                        {
+                    children: [
+                        new Paragraph({
+                            text: vm.reportFor,
+                            spacing: {
+                                before: 2800,
+                                after: 500,
+                            },
+                            alignment: AlignmentType.RIGHT
+                        }),
+                        new Paragraph({
+                            text: "Эфирная справка о материалах, прошедших в эфире телеканала",
+                            alignment: AlignmentType.CENTER
+                        }),
+                        new Paragraph({
+                            text: "ОГТРК «Ямал-Регион»",
+                            alignment: AlignmentType.CENTER
+                        }),
+                        new Paragraph({
                             text: 'период размещения: c ' + this.dateStart + ' ' + this.timeStart + ' по ' + this.dateEnd + ' ' + this.timeEnd,
-                            style: 'subheader',
-                            alignment: 'center'
-                        },
-                        {
-                            style: 'tableExample',
-                            table: {
-                                widths: ['auto', 'auto', 100],
-                                body: rows
+                            alignment: AlignmentType.CENTER,
+                            spacing: {
+                                after: 300
                             }
-                        },
-                        {
+                        }),
+                        table,
+                        new Paragraph({
                             text: 'Всего роликов: ' + this.eventsList.length + '.',
-                        },
-                        {
-                            text: 'Общий хронометраж: ' + this.totalDuration + ' секунд.'
-                        },
-                        {
+                            spacing: {
+                                before: 300
+                            }
+                        }),
+                        new Paragraph('Общий хронометраж: ' + this.totalDuration + ' секунд.'),
+                        new Paragraph({
                             text: this.signedBy + ' ______________________',
-                            alignment: 'right',
-                            style: 'sign'
-                        },
+                            spacing: {
+                                before: 300
+                            }
+                        }),
 
                     ],
-                    footer: function (currentPage, pageCount) {
-                        if (currentPage === pageCount)
-                            return [
-                                {
-                                    text: vm.createdBy,
-                                    style: 'contact'
-                                }
-                            ]
-                    },
-                    styles: {
-                        contact: {
-                            fontSize: 8,
-                            margin: [7, 0, 0, 20]
-                        },
-                        header: {
-                            fontSize: 18,
-                            bold: true,
-                        },
-                        subheader: {
-                            fontSize: 16,
-                            bold: true,
-                        },
-                        tableExample: {
-                            margin: [0, 5, 0, 15]
-                        },
-                        tableHeader: {
-                            bold: true,
-                            fontSize: 13,
-                            color: 'black'
-                        },
-                        sign: {
-                            margin: [50, 5, 0, 15]
-                        }
-                    },
-                }
-                pdfMake.createPdf(docDefinition).download('optionalName.pdf')
-            },
-            makeCsv() {
+                });
 
+                Packer.toBlob(doc).then((blob) => {
+                    // saveAs from FileSaver will download the file
+                    saveAs(blob, "Справка.docx");
+                });
             }
         },
         watch: {

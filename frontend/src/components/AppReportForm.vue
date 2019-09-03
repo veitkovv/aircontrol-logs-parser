@@ -200,7 +200,6 @@
                                 @click:clear="clearCreatedBy"
                         ></v-text-field>
                     </v-col>
-
                 </v-row>
                 <v-row justify="center" v-if="eventsList.length !==0" ref="content" id="content">
                     <v-col cols="12" lg="12" id="document-to-export">
@@ -237,12 +236,20 @@
                     </v-col>
                     <v-col>
                         <v-btn
-                                outlined
+                                large
+                                block
+                                color="primary"
+                                @click="makePdf"
+                        >Скачать PDF
+                        </v-btn>
+                    </v-col>
+                    <v-col>
+                        <v-btn
                                 large
                                 block
                                 color="success"
-                                @click="makePdf"
-                        >Скачать документ
+                                @click="makeCsv"
+                        >Скачать EXCEL
                         </v-btn>
                     </v-col>
                 </v-row>
@@ -456,6 +463,9 @@
                     },
                 }
                 pdfMake.createPdf(docDefinition).download('optionalName.pdf')
+            },
+            makeCsv() {
+
             }
         },
         watch: {

@@ -28,18 +28,6 @@ class RollViewSet(viewsets.ModelViewSet):
     serializer_class = RollSerializer
     filterset_class = RollFilterSet
 
-    def get_queryset(self):
-        queryset = Roll.objects.all()
-        name_in = self.request.query_params.get('name_in', None)
-        if name_in is not None:
-            name__in = name_in.split('|')
-            query = Q()
-            for x in name__in:
-                q = Q(name=x)
-                query |= q
-            queryset = self.queryset.filter(query)
-        return queryset
-
 
 # ViewSets define the view behavior.
 class UserViewSet(viewsets.ModelViewSet):

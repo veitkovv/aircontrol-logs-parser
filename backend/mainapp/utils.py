@@ -3,6 +3,7 @@ import re
 import glob
 import logging
 from concurrent.futures import ThreadPoolExecutor as PoolExecutor
+from functools import wraps
 
 from datetime import datetime, timedelta
 
@@ -23,6 +24,32 @@ def get_date_from_filename(filename):
     """Ищет в имени файла дату и возвращает объект date"""
     re_pattern = "([0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9])"
     return datetime.strptime(re.search(re_pattern, filename).group(0), '%d-%m-%Y').date()
+
+
+def crop_numbers(fn):
+    """Полный С полем общий пн 22.45 16+ 10:00:00:00.1 => Полный С полем общий пн 22.45 16+"""
+
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        return re.sub(r'\d\d:\d\d:\d\d:\d.+', '', fn(*args, **kwargs))
+
+    return wrapped
+
+
+def crop_prefix(fn):
+    """Полный С полем общий пн 22.45 16+ => С полем общий пн 22.45 16+"""
+
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        return re.sub(r'(^Полный )', '', fn(*args, **kwargs))
+
+    return wrapped
+
+
+@crop_prefix
+@crop_numbers
+def format_roll_name(roll_name):
+    return roll_name.strip()
 
 
 def process_old_file(filename):
@@ -85,7 +112,7 @@ def process_new_file(filename: str):
             else:
                 line_dict["is_start"] = log_entry[3] == "START"
                 line_dict["uuid"] = log_entry[4].strip('{}')
-                line_dict["name"] = log_entry[5].strip()
+                line_dict["name"] = format_roll_name(log_entry[5])
                 line_dict["description"] = log_entry[6].strip()
                 lines.append(line_dict)
     logging.debug(f'end of processing new file {filename}')
@@ -140,4 +167,3 @@ def start_roll_fabric(event_list: list):
                     parsed_rolls.append(finish_roll)
     parsed_rolls.extend(buff)  # Добавляем роллы, которые по какой-то причине без времени окончания
     Roll.objects.bulk_create(parsed_rolls, ignore_conflicts=True)
-

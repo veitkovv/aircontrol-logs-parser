@@ -18,12 +18,6 @@ export default new Router({
             icon: 'edit',
             component: () => import('../components/AppReportForm')
         },
-                {
-            path: '/report-radio',
-            name: 'Эфирная справка Радио',
-            icon: 'edit',
-            component: () => import('../components/AppRadioReportForm')
-        },
         {
             path: '/about',
             name: 'О приложении',

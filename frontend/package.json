@@ -9,8 +9,9 @@
   },
   "dependencies": {
     "core-js": "^2.6.5",
+    "docx": "^5.0.0-rc5",
+    "file-saver": "^2.0.2",
     "moment": "^2.24.0",
-    "pdfmake": "^0.1.58",
     "vue": "^2.6.10",
     "vue-router": "^3.1.2",
     "vuetify": "^2.0.10",

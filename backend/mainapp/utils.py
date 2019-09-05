@@ -52,31 +52,7 @@ def format_roll_name(roll_name):
     return roll_name.strip()
 
 
-def process_old_file(filename):
-    """
-    Вспомогательный метод для парсинга содержимого файла filename
-    Он вызывается только если файл не считывался ранее и файл имеет старый формат.
-    07:53:51:00	05/14/2012		Полный Мимино 00:02:05:00		01:31:08:01	01:23:34:19
-    """
-    print(f'processing old file {filename}')
-    # определить старый или новый
-    with open(filename, 'r', encoding="utf-16") as f:
-        lines = []
-        for line in f.readlines():
-            log_entry = line.split('\t')
-        #    print(log_entry)
-        #     r = Roll()
-        #     r.name = ""
-        #     r.category = ""
-        #     r.start = ""
-        #     r.end = ""
-        #     r.isOldFormat = True
-        #     lines.append(r)
-        # Roll.objects.bulk_create(lines)
-    print(f'end of processing old file {filename}')
-
-
-def process_new_file(filename: str):
+def process_log_file(filename: str):
     """
     Для нового формата
     "11/01/2016","08:31:15.385","VIDEO","START","{1B0855B9-17D6-4585-887E-46968ED006F8}","Утро 01.11.2016 ГОТОВО","","","","10:01:13:02","29.335",""
@@ -133,11 +109,11 @@ def scan_logs(source_path: str):
 
     with PoolExecutor(max_workers=4) as executor:
         dt = datetime.now()
-        print(f'start scanning at {datetime.now()}')
-        for result in executor.map(process_new_file, [f for f in filenames if not file_is_old(f)]):
+        logging.info(f'start scanning at {datetime.now()}')
+        for result in executor.map(process_log_file, [f for f in filenames if not file_is_old(f)]):
             all_events.extend(result)
     all_events.sort(key=lambda x: x["datetime"])
-    print(f'all files scanned and sorted. Total lines: {len(all_events)}, total time: {datetime.now() - dt}')
+    logging.info(f'all files scanned and sorted. Total lines: {len(all_events)}, total time: {datetime.now() - dt}')
     return all_events
 
 
@@ -167,3 +143,4 @@ def start_roll_fabric(event_list: list):
                     parsed_rolls.append(finish_roll)
     parsed_rolls.extend(buff)  # Добавляем роллы, которые по какой-то причине без времени окончания
     Roll.objects.bulk_create(parsed_rolls, ignore_conflicts=True)
+    logging.info('Done with creating new rolls')

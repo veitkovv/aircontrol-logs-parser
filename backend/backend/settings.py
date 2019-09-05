@@ -95,7 +95,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'Asia/Yekaterinburg'
+TIME_ZONE = os.environ.get('TZ')
 
 USE_I18N = True
 
@@ -118,7 +118,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 500,
+    'PAGE_SIZE': 5000,
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
@@ -126,3 +126,10 @@ LOGS_PATH = os.path.join(os.path.dirname(BASE_DIR), 'logs')
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = False
+
+# REDIS related settings
+REDIS_HOST = 'redis'
+REDIS_PORT = '6379'
+BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'

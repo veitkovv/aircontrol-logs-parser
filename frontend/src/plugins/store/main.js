@@ -4,18 +4,24 @@ import Vuex from 'vuex';
 Vue.use(Vuex);
 
 
-
 const state = {
-    events: []
+    events: [],
+    appTitle: ''
 };
 const getters = {
     EVENTS: state => {
         return state.events
+    },
+    APP_TITLE: state => {
+        return state.appTitle
     }
 };
 const mutations = {
     SET_EVENTS: (state, payload) => {
         state.events = payload
+    },
+    SET_TITLE: (state, payload) => {
+        state.appTitle = payload
     }
 };
 const actions = {

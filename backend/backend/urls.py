@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
-from mainapp.views import ScanLogsView
 from mainapp.views import RollViewSet, UserViewSet
 
 router = routers.DefaultRouter()
@@ -13,5 +12,4 @@ urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('scan-logs/', ScanLogsView.as_view(), name='scan_logs'),
 ]

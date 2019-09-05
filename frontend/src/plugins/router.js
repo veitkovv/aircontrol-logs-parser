@@ -8,12 +8,6 @@ export default new Router({
     routes: [
         {
             path: '/',
-            name: 'Календарь',
-            icon: 'calendar_today',
-            component: () => import('../components/AppCalendar')
-        },
-        {
-            path: '/report',
             name: 'Эфирная справка ТВ',
             icon: 'edit',
             component: () => import('../components/AppReportForm')

@@ -1,7 +1,6 @@
 version: '3.4'
 
 services:
-
   alp_db:
     container_name: alp_db
     image: postgres:alpine
@@ -14,6 +13,54 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=${TZ}
+
+  redis:
+    container_name: redis
+    image: redis
+    networks:
+      - db_network
+    ports:
+      - 6379:6379
+    restart: always
+    environment:
+      - TZ=${TZ}
+
+  celery:
+    container_name: celery
+    build: ./backend
+    command: celery -A backend worker -l info
+    networks:
+      - db_network
+    depends_on:
+      - alp_db
+      - redis
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - MODE=${MODE}
+      - TZ=${TZ}
+
+  celery-beat:
+    container_name: celery_beat
+    build: ./backend
+    networks:
+      - db_network
+    command: celery -A backend beat -l info
+    depends_on:
+      - alp_db
+      - redis
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - MODE=${MODE}
+      - TZ=${TZ}
 
   alp_backend:
     build: ./backend
@@ -31,7 +78,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - MODE=${MODE}
-
+      - TZ=${TZ}
 
 networks:
   docker_external_net:

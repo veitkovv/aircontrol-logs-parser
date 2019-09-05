@@ -253,7 +253,7 @@
 </template>
 
 <script>
-    import {mapActions, mapGetters} from 'vuex'
+    import {mapActions, mapGetters, mapMutations} from 'vuex'
     import {Document, Packer, Paragraph, TextRun, Header, Footer, Table, AlignmentType, HeadingLevel} from "docx";
     import {saveAs} from 'file-saver';
 
@@ -281,7 +281,7 @@
                 ],
                 timeEndMenu: false,
                 timeEnd: '23:59',
-                reportFor: 'ИП Осколков И.Н.',
+                reportFor: '',
                 signedBy: 'Начальник программной дирекции О.А. Криберг',
                 createdBy: 'Исп. Пузина Диана Эдуардовна 7-12-46',
             }
@@ -290,6 +290,7 @@
         computed: {
             ...mapGetters([
                 'EVENTS',
+                'APP_TITLE',
             ]),
             startAfter() {
                 return this.dateStartFormatted + ' ' + this.timeStart
@@ -311,16 +312,15 @@
             ...mapActions([
                 'fetchEvents',
             ]),
-
+            ...mapMutations([
+               'SET_TITLE',
+            ]),
             fetchReportData() {
                 this.loading = true
-                this.fetchEvents(
-                    {
-                        startBefore: this.startBefore,
-                        startAfter: this.startAfter
-                    }
-                )
-                this.loading = false
+                this.fetchEvents({
+                    startBefore: this.startBefore,
+                    startAfter: this.startAfter
+                }).then(() => this.loading = false)
             },
 
             formatDate(date) {
@@ -470,6 +470,7 @@
         },
         beforeMount() {
             this.fetchReportData()
+            this.SET_TITLE('Создание эфирной справки')
         }
     }
 </script>

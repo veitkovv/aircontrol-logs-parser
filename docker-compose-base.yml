@@ -1,0 +1,45 @@
+version: '3.4'
+
+services:
+
+  alp_db:
+    container_name: alp_db
+    image: postgres:alpine
+    restart: always
+    networks:
+      - db_network
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  alp_backend:
+    build: ./backend
+    restart: always
+    volumes:
+      - static_volume:/opt/alp/backend/static  # <-- bind the static volume
+      - media_volume:/opt/alp/backend/media  # <-- bind the media volume
+    networks:
+      - docker_external_net # for Nginx
+      - db_network
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - MODE=${MODE}
+
+
+networks:
+  docker_external_net:
+    internal: false
+  db_network:
+    internal: true
+
+volumes:
+  db_volume:
+  static_volume:  # <-- declare the static volume
+  media_volume:  # <-- declare the media volume

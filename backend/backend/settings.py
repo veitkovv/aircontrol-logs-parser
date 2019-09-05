@@ -1,19 +1,27 @@
 import os
+from django.core.management.utils import get_random_secret_key
 
 
 def get_secret_key():
     """Docker Build fails without secret key"""
     env_key = os.environ.get('DJANGO_SECRET_KEY')
-    return env_key if env_key else '$%e*q@$aav2r92bwuhj867v_9juy1)90c+cdxux6g_68k45rm+'
+    return env_key if env_key else get_random_secret_key()
+
+
+def get_debug_state():
+    return os.environ.get('MODE') == 'development'
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SECRET_KEY = get_secret_key()
 
-DEBUG = True
+DEBUG = get_debug_state()
 
-ALLOWED_HOSTS = ['*']
+if DEBUG:
+    ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'api.localhost']
+else:
+    ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',

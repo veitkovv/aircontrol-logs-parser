@@ -1,0 +1,12 @@
+version: '3.4'
+
+services:
+
+  alp_backend:
+    container_name: alp_backend_prod
+    build: ./backend/Dockerfile.prod
+
+# multistage nginx + node
+
+volumes:
+  frontend_dist:

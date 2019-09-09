@@ -18,7 +18,5 @@ RUN \
 
 RUN python manage.py collectstatic --no-input
 
-RUN python manage.py migrate
-
 EXPOSE 8000
 CMD gunicorn --chdir backend --bind :8000 backend.wsgi:application --workers 4 --timeout 300 --reload

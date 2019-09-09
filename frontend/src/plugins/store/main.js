@@ -3,6 +3,8 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
+const apiEndpoint = process.env.VUE_APP_API_ENDPOINT || "api.yr-cinegylog-parser.yaregion.local"
+
 
 const state = {
     events: [],
@@ -28,7 +30,7 @@ const actions = {
     async fetchEvents({commit}, {startAfter, startBefore}) {
         // Пользователь выбрал диапазон дат, получаем список всех роликов, сохраняем в EVENTS
         // https://fetch.spec.whatwg.org/#fetch-api
-        let url = new URL("http://" + process.env.VUE_APP_API_ENDPOINT + "/rolls/?start_after=" + startAfter + "&start_before=" + startBefore)
+        let url = new URL("http://" + apiEndpoint + "/rolls/?start_after=" + startAfter + "&start_before=" + startBefore)
 
         // для реактивной строки поиска - фильтр только по датам
         await fetch(url.href)

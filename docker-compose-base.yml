@@ -101,7 +101,7 @@ services:
     environment:
       - CHOKIDAR_USEPOLLING=true
       - NODE_ENV=${MODE}
-      - VUE_APP_API_ENDPOINT=api.localhost
+      - VUE_APP_API_ENDPOINT=${VUE_APP_API_ENDPOINT}
     depends_on:
       - backend
 

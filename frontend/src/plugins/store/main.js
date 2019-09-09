@@ -3,7 +3,7 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
-const apiEndpoint = env.process.get.VUE_APP_API_ENDPOINT || "api.yr-cinegylog-parser.yaregion.local";
+const apiEndpoint = "api.yr-cinegylog-parser.yaregion.local";
 
 const state = {
     events: [],

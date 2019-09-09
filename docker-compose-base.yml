@@ -1,7 +1,7 @@
 version: '3.4'
 
 services:
-  alp_db:
+  db:
     container_name: alp_db
     image: postgres:alpine
     restart: always
@@ -16,7 +16,7 @@ services:
       - TZ=${TZ}
 
   redis:
-    container_name: redis
+    container_name: alp_redis
     image: redis
     networks:
       - db_network
@@ -27,17 +27,20 @@ services:
       - TZ=${TZ}
 
   celery:
-    container_name: celery
+    container_name: alp_celery
     build: ./backend
     command: celery -A backend worker -l info
+    volumes:
+      - smb_share_with_logs_volume_dev:/opt/alp/backend/logs
     networks:
       - db_network
     depends_on:
-      - alp_db
+      - db
       - redis
     environment:
       - PYTHONUNBUFFERED=1
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -45,40 +48,78 @@ services:
       - TZ=${TZ}
 
   celery-beat:
-    container_name: celery_beat
+    container_name: alp_celery_beat
     build: ./backend
     networks:
       - db_network
     command: celery -A backend beat -l info
     depends_on:
-      - alp_db
+      - db
       - redis
     environment:
       - PYTHONUNBUFFERED=1
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - MODE=${MODE}
       - TZ=${TZ}
 
-  alp_backend:
+  backend:
+    container_name: alp_backend
     build: ./backend
     restart: always
     volumes:
       - static_volume:/opt/alp/backend/static  # <-- bind the static volume
       - media_volume:/opt/alp/backend/media  # <-- bind the media volume
+      - smb_share_with_logs_volume_dev:/opt/alp/backend/logs
     networks:
       - docker_external_net # for Nginx
       - db_network
+    depends_on:
+      - db
     environment:
       - PYTHONUNBUFFERED=1
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - MODE=${MODE}
       - TZ=${TZ}
+
+  frontend:
+    container_name: alp_frontend
+    build: ./frontend
+    restart: always
+    volumes:
+      - node_modules:/opt/alp/frontend/node_modules
+      - frontend_dist:/opt/alp/frontend/dist
+    networks:
+      - docker_external_net
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - NODE_ENV=${MODE}
+      - VUE_APP_API_ENDPOINT=api.localhost
+    depends_on:
+      - backend
+
+  nginx:
+    container_name: alp_nginx
+    image: nginx:latest
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - static_volume:/opt/alp/backend/static  # <-- bind the static volume
+      - media_volume:/opt/alp/backend/media  # <-- bind the media volume
+    networks:
+      - docker_external_net
+    depends_on:
+      - backend
+      - frontend
+
 
 networks:
   docker_external_net:
@@ -88,5 +129,13 @@ networks:
 
 volumes:
   db_volume:
+  smb_share_with_logs_volume_dev:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: ${SERVERPATH}
+      o: ${MOUNTOPTIONS}
   static_volume:  # <-- declare the static volume
   media_volume:  # <-- declare the media volume
+  frontend_dist:
+  node_modules:

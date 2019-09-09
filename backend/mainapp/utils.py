@@ -52,7 +52,7 @@ def format_roll_name(roll_name):
     return roll_name.strip()
 
 
-def process_log_file(filename: str):
+def process_log_file(filename: str) -> list:
     """
     Для нового формата
     "11/01/2016","08:31:15.385","VIDEO","START","{1B0855B9-17D6-4585-887E-46968ED006F8}","Утро 01.11.2016 ГОТОВО","","","","10:01:13:02","29.335",""
@@ -95,7 +95,7 @@ def process_log_file(filename: str):
     return lines
 
 
-def scan_logs(source_path: str):
+def scan_logs(source_path: str) -> list:
     """
     Функция получает список файлов *.txt по входному пути, и многопоточно вызывает функцию process_new_file,
      которая обрабатывает содержимое файлов
@@ -117,7 +117,7 @@ def scan_logs(source_path: str):
     return all_events
 
 
-def start_roll_fabric(event_list: list):
+def start_roll_fabric(event_list: list) -> None:
     """
     функция-фабрика объектов Roll
     :param event_list: список словарей из лога

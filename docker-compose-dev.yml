@@ -2,42 +2,17 @@ version: '3.4'
 
 services:
 
-  alp_backend:
+  backend:
     container_name: alp_backend_dev
     volumes:
       - ./backend:/opt/alp/backend
 
-  alp_frontend:
+  frontend:
     container_name: alp_frontend_dev
-    build: ./frontend
-    restart: always
     volumes:
       - ./frontend:/opt/alp/frontend
-      - node_modules:/opt/alp/frontend/node_modules
-    networks:
-      - docker_external_net
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - NODE_ENV=${MODE}
-      - VUE_APP_API_ENDPOINT=api.localhost
-    depends_on:
-      - alp_backend
 
-  alp_nginx:
+  nginx:
     container_name: alp_nginx_dev
-    image: nginx:latest
-    restart: always
-    ports:
-      - 80:80
     volumes:
       - ./config/nginx/conf.d/dev:/etc/nginx/conf.d
-      - static_volume:/opt/alp/backend/static  # <-- bind the static volume
-      - media_volume:/opt/alp/backend/media  # <-- bind the media volume
-    networks:
-      - docker_external_net
-    depends_on:
-      - alp_backend
-      - alp_frontend
-
-volumes:
-  node_modules:

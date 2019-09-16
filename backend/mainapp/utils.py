@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor as PoolExecutor
 from functools import wraps
 
 from datetime import datetime, timedelta
+from time import time as get_current_time
 
 from .models import Roll
 
@@ -52,12 +53,12 @@ def format_roll_name(roll_name):
     return roll_name.strip()
 
 
-def process_log_file(filename: str) -> list:
+def process_log_file(filename: str):
     """
     Для нового формата
     "11/01/2016","08:31:15.385","VIDEO","START","{1B0855B9-17D6-4585-887E-46968ED006F8}","Утро 01.11.2016 ГОТОВО","","","","10:01:13:02","29.335",""
     Функция открывает на чтение файл, и считывает построчно, формируя словарь со значениями
-    :return: список строк в виде словарей
+    :return: генератор словарей
     """
     logging.debug(f'processing new file {filename}')
     with open(filename, 'r', encoding="utf-16") as f:
@@ -83,7 +84,6 @@ def process_log_file(filename: str) -> list:
                 # категория engine не имеет других параметров, кроме START - END
                 logging.debug(f'ENGINE MESSAGE DETECTED: {line}')
                 yield line_dict
-                continue
             else:
                 line_dict["is_start"] = log_entry[3] == "START"
                 line_dict["uuid"] = log_entry[4].strip('{}')
@@ -105,18 +105,18 @@ def scan_logs(source_path: str) -> list:
     all_events = []
 
     with PoolExecutor(max_workers=4) as executor:
-        dt = datetime.now()
+        t0 = get_current_time()
         logging.info(f'start scanning at {datetime.now()}')
         for result in executor.map(process_log_file, [f for f in filenames if not file_is_old(f)]):
             all_events.extend(result)
-    all_events.sort(key=lambda x: x["datetime"])
-    logging.info(f'all files scanned and sorted. Total lines: {len(all_events)}, total time: {datetime.now() - dt}')
+    all_events.sort(key=lambda x: x["datetime"])  # сортировка всего списка по дате, ролики идут подряд
+    logging.info(f'all files scanned and sorted. Total lines: {len(all_events)}, total time: {get_current_time() - t0}')
     return all_events
 
 
 def start_roll_fabric(event_list: list) -> None:
     """
-    функция-фабрика объектов Roll
+    функция-фабрика объектов Roll, создает объекты и вностит в базу данных
     :param event_list: список словарей из лога
     :return:
     """

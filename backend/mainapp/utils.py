@@ -61,7 +61,6 @@ def process_log_file(filename: str) -> list:
     """
     logging.debug(f'processing new file {filename}')
     with open(filename, 'r', encoding="utf-16") as f:
-        lines = []
         for line in f.readlines():
             line_dict = {  # Стандартизированный словарь, который функция заполняет значениями из строк
                 "datetime": "",
@@ -83,16 +82,14 @@ def process_log_file(filename: str) -> list:
             if category == "ENGINE":
                 # категория engine не имеет других параметров, кроме START - END
                 logging.debug(f'ENGINE MESSAGE DETECTED: {line}')
-                lines.append(line_dict)
+                yield line_dict
                 continue
             else:
                 line_dict["is_start"] = log_entry[3] == "START"
                 line_dict["uuid"] = log_entry[4].strip('{}')
                 line_dict["name"] = format_roll_name(log_entry[5])
                 line_dict["description"] = log_entry[6].strip()
-                lines.append(line_dict)
-    logging.debug(f'end of processing new file {filename}')
-    return lines
+                yield line_dict
 
 
 def scan_logs(source_path: str) -> list:

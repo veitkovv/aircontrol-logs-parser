@@ -3,12 +3,14 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
-const apiEndpoint = "api.yr-cinegylog-parser.yaregion.local";
+//const apiEndpoint = "api.yr-cinegylog-parser.yaregion.local";
+const apiEndpoint = "api.localhost";
 
 const state = {
     events: [],
     appTitle: ''
 };
+
 const getters = {
     EVENTS: state => {
         return state.events
@@ -17,6 +19,7 @@ const getters = {
         return state.appTitle
     }
 };
+
 const mutations = {
     SET_EVENTS: (state, payload) => {
         state.events = payload
@@ -25,6 +28,7 @@ const mutations = {
         state.appTitle = payload
     }
 };
+
 const actions = {
     async fetchEvents({commit}, {startAfter, startBefore}) {
         // Пользователь выбрал диапазон дат, получаем список всех роликов, сохраняем в EVENTS
@@ -40,7 +44,6 @@ const actions = {
             })
     }
 };
-
 
 export const store = new Vuex.Store({
     state,

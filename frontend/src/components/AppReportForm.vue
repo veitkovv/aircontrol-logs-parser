@@ -191,14 +191,41 @@
                         ></v-text-field>
                     </v-col>
                     <v-col>
-                        <v-text-field
-                                v-model="createdBy"
-                                label="Исполнитель"
-                                outlined
-                                clear-icon="mdi-close-circle"
-                                clearable
-                                @click:clear="clearCreatedBy"
-                        ></v-text-field>
+                        <template>
+                            <v-toolbar>
+                                <v-toolbar-title>Исполнитель</v-toolbar-title>
+                                <v-autocomplete
+                                        v-model="createdBy"
+                                        :loading="loading"
+                                        :items="DOERS"
+                                        :search-input.sync="createdBy.name"
+                                        class="mx-4"
+                                        flat
+                                        hide-no-data
+                                        hide-details
+                                        label="Выберите исполнителя или создайте нового"
+                                        solo-inverted
+                                        return-object
+                                        item-text="name"
+                                ></v-autocomplete>
+                                <v-btn
+                                        icon
+                                        :disabled="createdBy.name === null"
+                                        color="primary"
+                                        @click.native="createOrUpdateDoer(createdBy)"
+                                >
+                                    <v-icon>save</v-icon>
+                                </v-btn>
+                                <v-btn
+                                        :disabled="createdBy.name === null"
+                                        icon
+                                        color="error"
+                                        @click.native="deleteDoer(createdBy)"
+                                >
+                                    <v-icon>delete</v-icon>
+                                </v-btn>
+                            </v-toolbar>
+                        </template>
                     </v-col>
                 </v-row>
                 <v-row justify="center" v-if="eventsList.length !==0" ref="content" id="content">
@@ -214,7 +241,7 @@
                             <thead>
                             <tr>
                                 <th>Время выхода в эфир</th>
-                                <th>Имя ролика</th>
+                                <th>Наименование</th>
                                 <th>Хронометраж (сек.)</th>
                             </tr>
                             </thead>
@@ -232,7 +259,7 @@
                             <p>Общий хронометраж: {{totalDuration}} секунд. </p>
                         </div>
                         <p class="footer">{{signedBy}} ______________________</p>
-                        <p class="contact">{{createdBy}}</p>
+                        <p class="contact">Исп. {{createdBy.name}}</p>
                     </v-col>
                     <v-col>
                         <v-btn
@@ -283,7 +310,10 @@
                 timeEnd: '23:59',
                 reportFor: '',
                 signedBy: 'Начальник программной дирекции О.А. Криберг',
-                createdBy: 'Исп. Пузина Диана Эдуардовна 7-12-46',
+                createdBy: {
+                    name: null
+                },
+                searchDoer: ''
             }
         },
 
@@ -291,6 +321,7 @@
             ...mapGetters([
                 'EVENTS',
                 'APP_TITLE',
+                'DOERS',
             ]),
             startAfter() {
                 return this.dateStartFormatted + ' ' + this.timeStart
@@ -305,16 +336,21 @@
             },
             eventsList() {
                 return this.EVENTS.filter(x => this.chips.includes(x.name))
-            }
+            },
         },
 
         methods: {
             ...mapActions([
                 'fetchEvents',
+                'fetchDoers',
+                'createOrUpdateDoer',
+                'deleteDoer',
             ]),
             ...mapMutations([
-               'SET_TITLE',
+                'SET_TITLE',
+                'SET_DOERS'
             ]),
+
             fetchReportData() {
                 this.loading = true
                 this.fetchEvents({
@@ -340,9 +376,6 @@
             },
             clearSignedBy() {
                 this.signedBy = ''
-            },
-            clearCreatedBy() {
-                this.createdBy = ''
             },
             eventListAutocomplete(item) {
                 if (item !== null) {
@@ -374,7 +407,7 @@
                     alignment: AlignmentType.CENTER
                 }));
                 table.getCell(0, 1).add(new Paragraph({
-                    text: "Имя ролика",
+                    text: "Наименование",
                     heading: HeadingLevel.SUBTITLE,
                     alignment: AlignmentType.CENTER
                 }));
@@ -397,14 +430,14 @@
                     properties: {},
                     footers: {
                         default: new Footer({
-                            children: [new Paragraph(vm.createdBy)],
+                            children: [new Paragraph("Исп. " + vm.createdBy.name)],
                         }),
                     },
                     children: [
                         new Paragraph({
                             text: vm.reportFor,
                             spacing: {
-                                before: 2800,
+                                before: 3900,
                                 after: 500,
                             },
                             alignment: AlignmentType.RIGHT
@@ -470,6 +503,7 @@
         },
         beforeMount() {
             this.fetchReportData()
+            this.fetchDoers()
             this.SET_TITLE('Создание эфирной справки')
         }
     }

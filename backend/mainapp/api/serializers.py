@@ -1,5 +1,5 @@
 from rest_framework import routers, serializers, viewsets
-from .models import Roll
+from mainapp.models import Roll, CreatedBy
 from django.contrib.auth import get_user_model
 
 
@@ -17,3 +17,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = get_user_model()
         fields = ['url', 'username', 'email', 'is_staff']
+
+
+class CreatedBySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CreatedBy
+        fields = '__all__'

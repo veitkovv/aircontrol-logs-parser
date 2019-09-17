@@ -23,3 +23,7 @@ class Roll(models.Model):
         if self.end:
             return self.end - self.start
         return 0
+
+
+class CreatedBy(models.Model):
+    name = models.CharField(max_length=255, verbose_name='Исполнитель', unique=True)

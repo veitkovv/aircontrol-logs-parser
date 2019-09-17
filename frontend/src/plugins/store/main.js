@@ -1,10 +1,11 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
+import doers from './doers';
+import apiEndpoint from '../../../apiEndoint'
+
 Vue.use(Vuex);
 
-//const apiEndpoint = "api.yr-cinegylog-parser.yaregion.local";
-const apiEndpoint = "api.localhost";
 
 const state = {
     events: [],
@@ -17,7 +18,7 @@ const getters = {
     },
     APP_TITLE: state => {
         return state.appTitle
-    }
+    },
 };
 
 const mutations = {
@@ -26,14 +27,15 @@ const mutations = {
     },
     SET_TITLE: (state, payload) => {
         state.appTitle = payload
-    }
+    },
+
 };
 
 const actions = {
     async fetchEvents({commit}, {startAfter, startBefore}) {
         // Пользователь выбрал диапазон дат, получаем список всех роликов, сохраняем в EVENTS
         // https://fetch.spec.whatwg.org/#fetch-api
-        let url = new URL("http://" + apiEndpoint + "/rolls/?start_after=" + startAfter + "&start_before=" + startBefore)
+        const url = new URL("http://" + apiEndpoint + "/rolls/?start_after=" + startAfter + "&start_before=" + startBefore)
 
         // для реактивной строки поиска - фильтр только по датам
         await fetch(url.href)
@@ -42,7 +44,9 @@ const actions = {
             .catch(error => {
                 alert(error)
             })
-    }
+    },
+
+
 };
 
 export const store = new Vuex.Store({
@@ -50,5 +54,7 @@ export const store = new Vuex.Store({
     getters,
     mutations,
     actions,
-    modules: {}
+    modules: {
+        doers,
+    }
 });

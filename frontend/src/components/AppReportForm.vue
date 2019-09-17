@@ -211,6 +211,13 @@
                                 <v-btn
                                         icon
                                         :disabled="createdBy.name === null"
+                                        @click.native="clearCreatedBy()"
+                                >
+                                    <v-icon>clear</v-icon>
+                                </v-btn>
+                                <v-btn
+                                        icon
+                                        :disabled="createdBy.name === null"
                                         color="primary"
                                         @click.native="createOrUpdateDoer(createdBy)"
                                 >
@@ -313,7 +320,6 @@
                 createdBy: {
                     name: null
                 },
-                searchDoer: ''
             }
         },
 
@@ -389,6 +395,11 @@
             dateTimeHumanFormat(datetime) {
                 let moment = require('moment');
                 return moment(datetime).format("YYYY-MM-DD HH:mm:ss")
+            },
+            clearCreatedBy() {
+                this.createdBy = {
+                    name: null
+                }
             },
 
             makeDocx() {
@@ -499,7 +510,7 @@
             },
             timeEnd() {
                 this.fetchReportData()
-            }
+            },
         },
         beforeMount() {
             this.fetchReportData()

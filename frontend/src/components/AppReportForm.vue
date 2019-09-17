@@ -191,48 +191,46 @@
                         ></v-text-field>
                     </v-col>
                     <v-col>
-                        <template>
-                            <v-toolbar>
-                                <v-toolbar-title>Исполнитель</v-toolbar-title>
-                                <v-autocomplete
-                                        v-model="createdBy"
-                                        :loading="loading"
-                                        :items="DOERS"
-                                        :search-input.sync="createdBy.name"
-                                        class="mx-4"
-                                        flat
-                                        hide-no-data
-                                        hide-details
-                                        label="Выберите исполнителя или создайте нового"
-                                        solo-inverted
-                                        return-object
-                                        item-text="name"
-                                ></v-autocomplete>
-                                <v-btn
-                                        icon
-                                        :disabled="createdBy.name === null"
-                                        @click.native="clearCreatedBy()"
-                                >
-                                    <v-icon>clear</v-icon>
-                                </v-btn>
-                                <v-btn
-                                        icon
-                                        :disabled="createdBy.name === null"
-                                        color="primary"
-                                        @click.native="createOrUpdateDoer(createdBy)"
-                                >
-                                    <v-icon>save</v-icon>
-                                </v-btn>
-                                <v-btn
-                                        :disabled="createdBy.name === null"
-                                        icon
-                                        color="error"
-                                        @click.native="deleteDoer(createdBy)"
-                                >
-                                    <v-icon>delete</v-icon>
-                                </v-btn>
-                            </v-toolbar>
-                        </template>
+                        <v-toolbar>
+                            <v-toolbar-title>Исполнитель</v-toolbar-title>
+                            <v-autocomplete
+                                    v-model="createdBy"
+                                    :loading="loading"
+                                    :items="DOERS"
+                                    :search-input.sync="createdBy.name"
+                                    class="mx-4"
+                                    flat
+                                    hide-no-data
+                                    hide-details
+                                    label="Выберите исполнителя или создайте нового"
+                                    solo-inverted
+                                    return-object
+                                    item-text="name"
+                            ></v-autocomplete>
+                            <v-btn
+                                    icon
+                                    :disabled="createdBy.name === null"
+                                    @click.native="clearCreatedBy()"
+                            >
+                                <v-icon>clear</v-icon>
+                            </v-btn>
+                            <v-btn
+                                    icon
+                                    :disabled="createdBy.name === null"
+                                    color="primary"
+                                    @click.native="createOrUpdateDoer(createdBy)"
+                            >
+                                <v-icon>save</v-icon>
+                            </v-btn>
+                            <v-btn
+                                    :disabled="createdBy.name === null"
+                                    icon
+                                    color="error"
+                                    @click.native="deleteDoer(createdBy)"
+                            >
+                                <v-icon>delete</v-icon>
+                            </v-btn>
+                        </v-toolbar>
                     </v-col>
                 </v-row>
                 <v-row justify="center" v-if="eventsList.length !==0" ref="content" id="content">

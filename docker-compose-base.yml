@@ -52,7 +52,7 @@ services:
     build: ./backend
     networks:
       - db_network
-    command: celery -A backend beat -l info
+    command: celery -A backend beat -l info --pidfile=/opt/celeryd.pid
     depends_on:
       - db
       - redis
